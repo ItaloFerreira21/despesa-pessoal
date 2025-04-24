@@ -1,5 +1,5 @@
 // src/despesas/dto/create-despesa.dto.ts
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateDespesaDto {
@@ -10,4 +10,8 @@ export class CreateDespesaDto {
   @ApiProperty({ example: 120.5 })
   @IsNumber()
   valor: number;
+
+  @IsOptional()
+  @IsNumber()
+  categoriaId?: number;
 }

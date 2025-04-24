@@ -8,7 +8,7 @@ import { UpdateDespesaDto } from './dto/update-despesa.dto';
 export class DespesasService {
   constructor(private prisma: PrismaService) {}
 
-  async criarDespesa(titulo: string, valor: number, userId: string) {
+  async criarDespesa(titulo: string, valor: number, userId: string, categoriaId?: number) {
     return this.prisma.despesa.create({
       data: {
         titulo,
@@ -16,6 +16,11 @@ export class DespesasService {
         usuario: {
           connect: { id: userId },
         },
+        ...(categoriaId && {
+          categoria: {
+            connect: { id: categoriaId },
+          },
+        }),
       },
     });
   }

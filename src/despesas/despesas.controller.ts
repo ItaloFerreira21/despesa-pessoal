@@ -2,7 +2,7 @@ import { Controller, Post, Body, Request, UseGuards, Get, Query, Patch, Param, P
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DespesasService } from './despesas.service';
 import { CreateDespesaDto } from './dto/create-despesa.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { FiltroDespesaDto } from './dto/filtro-despesa.dto';
 import { UpdateDespesaDto } from './dto/update-despesa.dto';
 
@@ -14,17 +14,19 @@ export class DespesaController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
+  @ApiOperation({summary: 'criar despesa'})
   async criarDespesa(
     @Body() body: CreateDespesaDto,
     @Request() req
   ) {
     const userId = req.user.id; // JWT guarda o ID como 'id'
     console.log(' ID do usuário:', userId);
-    return this.despesaService.criarDespesa(body.titulo, body.valor, userId);
+    return this.despesaService.criarDespesa(body.titulo, body.valor, userId, body.categoriaId); //TODO: teste rota com adição de catergoria
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
+  @ApiOperation({summary: 'listar despesas'})
   async listarDespesas(@Request() req,
     @Query() filtro: FiltroDespesaDto
   ) {
@@ -34,6 +36,7 @@ export class DespesaController {
 
   @UseGuards(JwtAuthGuard)
 @Patch(':id')
+@ApiOperation({summary:'atualizar despesas'})
 async atualizarDespesa(
   @Param('id', ParseIntPipe) id: number,
   @Body() body: UpdateDespesaDto,
@@ -45,6 +48,7 @@ async atualizarDespesa(
 
 @UseGuards(JwtAuthGuard)
 @Delete(':id')
+@ApiOperation({summary: 'deletar despesa'})
 async deletarDespesa(
   @Param('id', ParseIntPipe) id: number,
   @Request() req

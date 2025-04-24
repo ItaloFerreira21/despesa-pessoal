@@ -10,6 +10,7 @@ import { UploadModule } from './upload/upload.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { DespesasModule } from './despesas/despesas.module';
+//import { CategoriasModule } from './categorias/categorias.module';
 
 @Module({
   imports: [AuthModule, UsuarioModule, TransacaoModule, CategoriaModule, RelatorioModule, UploadModule, PrismaModule, ConfigModule.forRoot(), DespesasModule],
