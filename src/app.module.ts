@@ -11,9 +11,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { DespesasModule } from './despesas/despesas.module';
 //import { CategoriasModule } from './categorias/categorias.module';
+import { RelatoriosModule } from './relatorios/relatorios.module';
 
 @Module({
-  imports: [AuthModule, UsuarioModule, TransacaoModule, CategoriaModule, RelatorioModule, UploadModule, PrismaModule, ConfigModule.forRoot(), DespesasModule],
+  imports: [AuthModule, UsuarioModule, TransacaoModule, CategoriaModule, RelatorioModule, UploadModule, PrismaModule, ConfigModule.forRoot(), DespesasModule, RelatoriosModule],
   controllers: [AppController],
   providers: [AppService],
 })
