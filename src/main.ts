@@ -9,6 +9,12 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+  app.enableCors({
+    // origin: 'http://localhost:5173',
+    origin: true,
+    credentials: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('API de Despesas')
     .setDescription('Documentação da API de despesas pessoais')
