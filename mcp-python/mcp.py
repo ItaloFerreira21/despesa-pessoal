@@ -1,96 +1,75 @@
+# mcp.py
+import sys
+# mcp.py
+import sys
 import os
-import json
+
+# Adiciona o caminho absoluto da pasta "api" ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "api")))
+
 import difflib
 import google.generativeai as genai
 from dotenv import load_dotenv
-from api.api_client import login, criar_despesa, listar_despesas, atualizar_despesa, deletar_despesa
+
+# Imports dos comandos (estão em api/comandos/)
+from comandos.comando_relatorios import comando_relatorio_total, comando_relatorio_mensal
+from comandos.comando_despesas import (
+    comando_criar_despesa,
+    comando_listar_despesas,
+    comando_atualizar_despesa,
+    comando_deletar_despesa
+)
+
+# Imports dos serviços (estão em api/service/)
+from service.auth import tentar_login
+from service.despesa import criar_despesa, listar_despesas, atualizar_despesa, deletar_despesa
+from service.relatorios import relatorio_total, relatorio_mensal
 
 
-# Carrega variáveis do .env
+
+# Carrega variáveis
 load_dotenv()
-email = input("Digite seu e-mail: ")
-senha = input("Digite sua senha: ")
-
-print(login(email, senha))
-
+tentar_login()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-# Modelo correto: sem "models/"
 model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
 def ask_llm(input_text: str) -> str:
-    prompt = f"Responda sempre em português brasileiro. Entrada do usuário: {input_text}"
+    prompt = f"Responda sempre em português do Brasil e seja simpatico. Entrada do usuário: {input_text}"
     result = model.generate_content(prompt)
     return result.candidates[0].content.strip()
 
-# Rotas conhecidas para comando (simples)
+# Dicionário de rotas
 rotas = {
-    "listar despesas": "listar_despesas",
-    "criar despesa": "criar_despesa",
-    "atualizar despesa": "atualizar_despesa",
-    "deletar despesa": "deletar_despesa",
+    "listar despesas": comando_listar_despesas,
+    "criar despesa": comando_criar_despesa,
+    "atualizar despesa": comando_atualizar_despesa,
+    "deletar despesa": comando_deletar_despesa,
+    "relatorio total": comando_relatorio_total,
+    "relatório total": comando_relatorio_total,
+    "relatório mensal": comando_relatorio_mensal,
+    "relatorio mensal": comando_relatorio_mensal,
+    "relatório mensal 2025": comando_relatorio_mensal,
+    "relatório mensal maio 2025": comando_relatorio_mensal,
 }
 
 def encontrar_rota_mais_proxima(entrada: str):
     entrada = entrada.lower()
-    melhores = difflib.get_close_matches(entrada, rotas.keys(), n=1, cutoff=0.5) #0.5 = 50% de similaridade com os nomes das rotas
+    melhores = difflib.get_close_matches(entrada, rotas.keys(), n=1, cutoff=0.5)
     if melhores:
         return rotas[melhores[0]]
     return None
 
-
-def executar_comando(entrada: str) -> str:
+def executar_comando(entrada: str):
     comando = encontrar_rota_mais_proxima(entrada)
     if not comando:
-        # fallback para LLM
-        prompt = f"Responda em português: {entrada}"
-        response = model.generate_content(prompt)
-        return response.candidates[0].content.strip()
-
-    if comando == "listar_despesas":
-        despesas = listar_despesas()
-        despesas_filtradas = [
-            {"id": d.get("id"), "titulo": d.get("titulo"), "valor": d.get("valor"), "data": d.get("data")}
-            for d in despesas
-        ]
-        return json.dumps(despesas_filtradas, indent=2, ensure_ascii=False)
-
-    if comando == "criar_despesa":
-        try:
-            titulo = input("Digite o título da despesa: ")
-            valor = float(input("Digite o valor da despesa: "))
-            categoria = input("Digite o ID da categoria (ou deixe vazio): ")
-            categoria_id = categoria if categoria else None
-            despesa = criar_despesa(titulo, valor, categoria_id)
-            return json.dumps(despesa, indent=2, ensure_ascii=False)
-        except ValueError:
-            return "Valor inválido. Tente novamente."
-
-    if comando == "atualizar_despesa":
-        try:
-            id_para_atualizar = int(input("Digite o ID da despesa para atualizar: "))
-            novo_titulo = input("Novo título: ")
-            novo_valor = float(input("Novo valor: "))
-            dados = {"titulo": novo_titulo, "valor": novo_valor}
-            despesa_atualizada = atualizar_despesa(id_para_atualizar, dados)
-            return json.dumps(despesa_atualizada, indent=2, ensure_ascii=False)
-        except ValueError:
-            return "ID ou valor inválido. Tente novamente."
-
-    if comando == "deletar_despesa":
-        try:
-            id_para_deletar = int(input("Digite o ID da despesa para deletar: "))
-            resultado = deletar_despesa(id_para_deletar)
-            return json.dumps(resultado, indent=2, ensure_ascii=False)
-        except ValueError:
-            return "ID inválido. Tente novamente."
-
+        return ask_llm(entrada)
+    return comando()
 
 if __name__ == "__main__":
     while True:
-        entrada = input("Você: ")
+        entrada = input("O que deseja: ")
         if entrada.lower() in ["sair", "exit", "quit"]:
             break
 
         resposta = executar_comando(entrada)
-        print("Inteligencia:", resposta)
+        print("MCP:", resposta)
